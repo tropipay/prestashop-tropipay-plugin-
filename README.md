@@ -1,2 +1,2 @@
-# prestashop-tropipay-plugin-
+# Prestashop Tropipay Plugin 
 Prestashop TropiPay Plugin 
