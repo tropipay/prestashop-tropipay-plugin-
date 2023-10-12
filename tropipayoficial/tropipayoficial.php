@@ -23,7 +23,7 @@ class Tropipayoficial extends PaymentModule {
 		
 		$this->name = 'tropipayoficial';
 		$this->tab = 'payments_gateways';
-		$this->version = '1.0.0';
+		$this->version = '2.0.0';
 		$this->author = 'TROPIPAY';
 		
 		if(_PS_VERSION_>=1.6){
@@ -39,8 +39,8 @@ class Tropipayoficial extends PaymentModule {
 		// Array config con los datos de config.
 		$config = Configuration::getMultiple ( array (
 				'TROPIPAY_URLTPV',
-				'TROPIPAY_NOMBRE',
-				'TROPIPAY_PASSW',
+				'TROPIPAY_CLIENTID',
+				'TROPIPAY_CLIENTSECRET',
 				'TROPIPAY_ERROR_PAGO',
 				'TROPIPAY_LOG',
 				'TROPIPAY_IDIOMAS_ESTADO' ,
@@ -57,10 +57,10 @@ class Tropipayoficial extends PaymentModule {
 				$this->urltpv = 'https://tropipay-dev.herokuapp.com';
 				break;
 		}
-		if (isset ( $config ['TROPIPAY_NOMBRE'] ))
-			$this->nombre = $config ['TROPIPAY_NOMBRE'];
-		if (isset ( $config ['TROPIPAY_PASSW'] ))
-			$this->codigo = $config ['TROPIPAY_PASSW'];
+		if (isset ( $config ['TROPIPAY_CLIENTID'] ))
+			$this->nombre = $config ['TROPIPAY_CLIENTID'];
+		if (isset ( $config ['TROPIPAY_CLIENTSECRET'] ))
+			$this->codigo = $config ['TROPIPAY_CLIENTSECRET'];
 		if (isset ( $config ['TROPIPAY_ERROR_PAGO'] ))
 			$this->error_pago = $config ['TROPIPAY_ERROR_PAGO'];
 		if (isset ( $config ['TROPIPAY_LOG'] ))
@@ -92,7 +92,7 @@ class Tropipayoficial extends PaymentModule {
 	public function install() {
 		if (! parent::install () 
 				|| ! Configuration::updateValue ( 'TROPIPAY_URLTPV', '0' ) 
-				|| ! Configuration::updateValue ( 'TROPIPAY_NOMBRE', $this->l ( 'Escriba el nombre de usuario' ) ) 
+				|| ! Configuration::updateValue ( 'TROPIPAY_CLIENTID', $this->l ( 'Escriba el clientId de la API de Tropipay' ) ) 
 				|| ! Configuration::updateValue ( 'TROPIPAY_ERROR_PAGO', 'no' ) 
 				|| ! Configuration::updateValue ( 'TROPIPAY_LOG', 'no' ) 
 				|| ! Configuration::updateValue ( 'TROPIPAY_IDIOMAS_ESTADO', 'no' ) 
@@ -132,8 +132,8 @@ class Tropipayoficial extends PaymentModule {
 	public function uninstall() {
 		// Valores a quitar si desinstalamos
 		if (!Configuration::deleteByName('TROPIPAY_URLTPV')
-			|| !Configuration::deleteByName('TROPIPAY_NOMBRE')
-			|| !Configuration::deleteByName('TROPIPAY_PASSW')
+			|| !Configuration::deleteByName('TROPIPAY_CLIENTID')
+			|| !Configuration::deleteByName('TROPIPAY_CLIENTSECRET')
 			|| !Configuration::deleteByName('TROPIPAY_ERROR_PAGO')
 			|| !Configuration::deleteByName('TROPIPAY_LOG')
 			|| !Configuration::deleteByName('TROPIPAY_IDIOMAS_ESTADO')
@@ -147,9 +147,9 @@ class Tropipayoficial extends PaymentModule {
 		// Si al enviar los datos del formulario de config. hay campos vacios, mostrar errores.
 		if (Tools::isSubmit ( 'btnSubmit' )) {
 			if (! Tools::getValue ( 'nombre' ) )
-				$this->post_errors [] = $this->l ( 'Se requiere el nombre del usuario.' );
+				$this->post_errors [] = $this->l ( 'Se requiere el clientId de la API de Tropipay.' );
 			if (! Tools::getValue ( 'codigo' ) )
-				$this->post_errors [] = $this->l ( 'Se requiere la contraseña.' );
+				$this->post_errors [] = $this->l ( 'Se requiere el clientSecret de la API de Tropipay.' );
 			if (Tools::getValue('estado_pedido')==='-1')
 				$this->post_errors[] = $this->l('Ha de indicar un estado de pedido válido.');
 		}
@@ -159,8 +159,8 @@ class Tropipayoficial extends PaymentModule {
 		// Actualizar la config. en la BBDD
 		if (Tools::isSubmit ( 'btnSubmit' )) {
 			Configuration::updateValue ( 'TROPIPAY_URLTPV', Tools::getValue ( 'urltpv' ) );
-			Configuration::updateValue ( 'TROPIPAY_NOMBRE', Tools::getValue ( 'nombre' ) );
-			Configuration::updateValue ( 'TROPIPAY_PASSW', Tools::getValue ( 'codigo' ) );
+			Configuration::updateValue ( 'TROPIPAY_CLIENTID', Tools::getValue ( 'nombre' ) );
+			Configuration::updateValue ( 'TROPIPAY_CLIENTSECRET', Tools::getValue ( 'codigo' ) );
 			Configuration::updateValue ( 'TROPIPAY_ERROR_PAGO', Tools::getValue ( 'error_pago' ) );
 			Configuration::updateValue ( 'TROPIPAY_LOG', Tools::getValue ( 'activar_log' ) );
 			Configuration::updateValue ( 'TROPIPAY_IDIOMAS_ESTADO', Tools::getValue ( 'idiomas_estado' ) );
@@ -216,8 +216,8 @@ class Tropipayoficial extends PaymentModule {
 				<table border="0" width="680" cellpadding="0" cellspacing="0" id="form">
 					<tr><td colspan="2">'.$this->l('Por favor completa los datos de configuración del comercio').'.<br /><br /></td></tr>
 					<tr><td width="255" style="height: 35px;">'.$this->l('Entorno de Tropipay').'</td><td><select name="urltpv"><option value="1"'.$entorno_real.'>'.$this->l('Real').'</option><option value="2"'.$entorno_t.'>'.$this->l('Sandbox').'</option></select></td></tr>
-					<tr><td width="255" style="height: 35px;">'.$this->l('Nombre de usuario').'</td><td><input type="text" name="nombre" value="'.htmlentities(Tools::getValue('nombre', $this->nombre), ENT_COMPAT, 'UTF-8').'" style="width: 200px;" /></td></tr>
-					<tr><td width="255" style="height: 35px;">'.$this->l('Contraseña').'</td><td><input type="password" name="codigo" value="'.Tools::getValue('codigo', $this->codigo).'" style="width: 200px;" /></td></tr>
+					<tr><td width="255" style="height: 35px;">'.$this->l('clientId').'</td><td><input type="text" name="nombre" value="'.htmlentities(Tools::getValue('nombre', $this->nombre), ENT_COMPAT, 'UTF-8').'" style="width: 200px;" /></td></tr>
+					<tr><td width="255" style="height: 35px;">'.$this->l('clientSecret').'</td><td><input type="password" name="codigo" value="'.Tools::getValue('codigo', $this->codigo).'" style="width: 200px;" /></td></tr>
 				</table>
 			</fieldset>
 			<br>
@@ -278,14 +278,14 @@ class Tropipayoficial extends PaymentModule {
 		if (Tools::isSubmit('btnSubmit'))
 		{
 			$this->_postValidation();
-			if (!count($this->post_errors))
+			if (!count($this->_postErrors))
 				$this->_postProcess();
 				else
-					foreach ($this->post_errors as $err)
+					foreach ($this->_postErrors as $err)
 						$this->html .= $this->displayError($err);
 		}
 		else{
-			$this->html .= '<br />';
+			$this->_html .= '<br />';
 		}
 		
 		$this->_html .= $this->_displayTropipay();
@@ -435,7 +435,7 @@ class Tropipayoficial extends PaymentModule {
 
 			$curl = curl_init();
 			curl_setopt_array($curl, array(
-				CURLOPT_URL => $tropipay_server . "/api/access/login",
+				CURLOPT_URL => $tropipay_server . "/api/v2/access/token",
 				//CURLOPT_HTTPHEADER => array ('Content-Type: application/json','Content-Length: ' . strlen($data_string)),
 				CURLOPT_HTTPHEADER => array ('Content-Type: application/json'),
 				CURLOPT_RETURNTRANSFER => true,
@@ -443,7 +443,7 @@ class Tropipayoficial extends PaymentModule {
 				CURLOPT_MAXREDIRS => 10,
 				CURLOPT_TIMEOUT => 10,
 				CURLOPT_CUSTOMREQUEST => "POST",
-				CURLOPT_POSTFIELDS => "{\"email\":\"" . $ds_merchant_usermail ."\",\"password\":\"" . $ds_merchant_userpassword . "\"}",
+				CURLOPT_POSTFIELDS => '{"grant_type": "client_credentials","client_id":"' . $ds_merchant_usermail .'","client_secret":"' . $ds_merchant_userpassword . '","scope": "ALLOW_EXTERNAL_CHARGE ALLOW_PAYMENT_IN"}',
 			));
 			$response = curl_exec($curl);
 			$err = curl_error($curl);
@@ -455,7 +455,7 @@ class Tropipayoficial extends PaymentModule {
 			} else {
 				//echo $response;
 				$character = json_decode($response);
-				$tokent=$character->token;
+				$tokent=$character->access_token;
 
 				escribirLog(" - Llamada a la api login: '" .$ds_merchant_usermail . "'. Token: '" . $tokent . "'", $this->activar_log);
 			
@@ -465,16 +465,15 @@ class Tropipayoficial extends PaymentModule {
 				
 			
 				//$customerprofiled=commerce_customer_profile_load($order->commerce_customer_billing['und'][0]['profile_id']);
-			
+				$country = new Country((int) $billingInfo->id_country);
 				
 
 				$arraycliente["name"]=$customer->firstname;
 				$arraycliente["lastName"]=$customer->lastname;
 				$arraycliente["address"]=$billingInfo->address1 . ", " . $billingInfo->city . ", " . $billingInfo->postcode;
-				$arraycliente["phone"]=$billingInfo->mobile_phone;
-				$arraycliente["phone"]="+34648454542";
+				$arraycliente["phone"] = $billingInfo->phone ? $billingInfo->phone : '+34648454542';
 				$arraycliente["email"]=$customer->email;
-				$arraycliente["countryId"] = 1;
+				$arraycliente["countryIso"] = $country->iso_code;
 				$arraycliente["termsAndConditions"] = true;
 
 				
@@ -482,6 +481,7 @@ class Tropipayoficial extends PaymentModule {
 				$datos=array(
 				  "reference" => $numpedido,
 				  "concept" => 'Order #: ' . $orderId,
+				  "favorite" => false,
 				  "description" => " ",
 				  "amount" => $cantidad,
 				  "currency" => $moneda,
@@ -504,7 +504,7 @@ class Tropipayoficial extends PaymentModule {
 			
 				$curl = curl_init();
 				curl_setopt_array($curl, array(
-				  CURLOPT_URL => $tropipay_server . "/api/paymentcards",
+				  CURLOPT_URL => $tropipay_server . "/api/v2/paymentcards",
 				  CURLOPT_RETURNTRANSFER => true,
 				  CURLOPT_ENCODING => "",
 				  CURLOPT_MAXREDIRS => 10,
@@ -529,6 +529,8 @@ class Tropipayoficial extends PaymentModule {
 				  //echo $response;
 				  $character = json_decode($response);
 				  $shorturl=$character->shortUrl;
+
+				  escribirLog(" - Respuesta paymentcards: '" .$response . "'", $this->activar_log);
 			
 				  escribirLog(" - Short url: '" .$shorturl . "'", $this->activar_log);
 			
