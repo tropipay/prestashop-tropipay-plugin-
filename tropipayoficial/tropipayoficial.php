@@ -23,7 +23,7 @@ class Tropipayoficial extends PaymentModule {
 		
 		$this->name = 'tropipayoficial';
 		$this->tab = 'payments_gateways';
-		$this->version = '2.0.0';
+		$this->version = '2.1.0';
 		$this->author = 'TROPIPAY';
 		
 		if(_PS_VERSION_>=1.6){
