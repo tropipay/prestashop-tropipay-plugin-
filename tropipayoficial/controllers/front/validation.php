@@ -19,20 +19,21 @@ class TropipayoficialValidationModuleFrontController extends ModuleFrontControll
             $strrrr=file_get_contents('php://input');
             $ppd=json_decode($strrrr,true);
 
-            $ds_amount = $ppd["data"]["originalCurrencyAmount"];
+            $ds_amount = abs($ppd["data"]["originalCurrencyAmount"]);
+            $ds_amountorig = $ppd["data"]["originalCurrencyAmount"];
             $total     = $ds_amount;
             $ds_order = $ppd["data"]["reference"];
             $ds_bankordercode = $ppd["data"]["bankOrderCode"];
             //$ds_amount = $ppd["data"]["originalCurrencyAmount"];
             //$ds_merchant_usermail = $settings['Mailuser_tropipay'];
             //$ds_merchant_userpassword = $settings['Password_tropipay'];
-            $ds_merchant_usermail = Configuration::get('TROPIPAY_NOMBRE');
-            $ds_merchant_userpassword = Configuration::get('TROPIPAY_PASSW');
+            $ds_merchant_usermail = Configuration::get('TROPIPAY_CLIENTID');
+            $ds_merchant_userpassword = Configuration::get('TROPIPAY_CLIENTSECRET');
             $ds_reference=$ppd["data"]["reference"];
             $ds_currency = $ppd["data"]["currency"];
             $moneda=$ds_currency;
-            $firma_remota = $ppd["data"]["signature"];
-            $firma_local=hash('sha256', $ds_bankordercode . $ds_merchant_usermail . sha1($ds_merchant_userpassword) . $ds_amount);
+            $firma_remota = $ppd["data"]["signaturev2"];
+            $firma_local=hash('sha256', $ds_bankordercode . $ds_merchant_usermail . $ds_merchant_userpassword . $ds_amountorig);
 
             escribirLog($idLog." -- "."Pedido de Tropipay: ".$ds_order,$logActivo);
             $pedidoSecuencial = $ds_order;

@@ -24,7 +24,3 @@ function escribirLog($texto,$activo) {
 		file_put_contents($logfilename, date('M d Y G:i:s') . ' -- ' . $texto . "\r\n", is_file($logfilename)?FILE_APPEND:0);
 	}
 }
-
-
-
-?>
