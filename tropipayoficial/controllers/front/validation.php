@@ -30,7 +30,7 @@ class TropipayoficialValidationModuleFrontController extends ModuleFrontControll
             $ds_merchant_usermail = Configuration::get('TROPIPAY_CLIENTID');
             $ds_merchant_userpassword = Configuration::get('TROPIPAY_CLIENTSECRET');
             $ds_reference=$ppd["data"]["reference"];
-            $ds_currency = $ppd["data"]["currency"];
+            $ds_currency = $ppd["data"]["paymentcard"]["currency"];
             $moneda=$ds_currency;
             $firma_remota = $ppd["data"]["signaturev2"];
             $firma_local=hash('sha256', $ds_bankordercode . $ds_merchant_usermail . $ds_merchant_userpassword . $ds_amountorig);
