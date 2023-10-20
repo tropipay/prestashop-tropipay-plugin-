@@ -16,6 +16,7 @@ if (! defined ( '_CAN_LOAD_FILES_' ))
 class Tropipayoficial extends PaymentModule {
 	
 	private $_html = '';
+	private $html = '';
 	private $_postErrors = array ();
 	
 	
