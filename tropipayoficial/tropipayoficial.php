@@ -24,7 +24,7 @@ class Tropipayoficial extends PaymentModule {
 		
 		$this->name = 'tropipayoficial';
 		$this->tab = 'payments_gateways';
-		$this->version = '2.1.2';
+		$this->version = '2.1.3';
 		$this->author = 'TROPIPAY';
 		
 		if(_PS_VERSION_>=1.6){
@@ -467,6 +467,7 @@ class Tropipayoficial extends PaymentModule {
 			
 				//$customerprofiled=commerce_customer_profile_load($order->commerce_customer_billing['und'][0]['profile_id']);
 				$country = new Country((int) $billingInfo->id_country);
+				$billingstate = new State((int) $billingInfo->id_state);
 				
 
 				$arraycliente["name"]=$customer->firstname;
@@ -475,9 +476,11 @@ class Tropipayoficial extends PaymentModule {
 				$arraycliente["phone"] = $billingInfo->phone ? $billingInfo->phone : '+34648454542';
 				$arraycliente["email"]=$customer->email;
 				$arraycliente["countryIso"] = $country->iso_code;
+				$arraycliente["city"] = $billingInfo->city;
+				$arraycliente["state"] = $billingstate->iso_code;
+				$arraycliente["postCode"] = $billingInfo->postcode;
 				$arraycliente["termsAndConditions"] = true;
 
-				
 			
 				$datos=array(
 				  "reference" => $numpedido,
