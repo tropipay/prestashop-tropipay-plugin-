@@ -294,8 +294,13 @@ class Tropipayoficial extends PaymentModule {
 		
 		return $this->html;
 	}
+
+	public function goGoogle()
+	{
+		return "https//:google.com";
+	}
 	
-	private function createParameter($params){
+	public function createParameter($params){
 		
 		// Valor de compra
 		$currency = new Currency($params['cart']->id_currency);
@@ -583,7 +588,6 @@ class Tropipayoficial extends PaymentModule {
 			return;
 		}
 		
-		$this->createParameter($params);
 		
 		return $this->display(__FILE__, 'payment.tpl');
 	}
@@ -601,24 +605,15 @@ class Tropipayoficial extends PaymentModule {
 			return;
 		}
 		
-		$this->createParameter($params);
 	
 		$newOption = new \PrestaShop\PrestaShop\Core\Payment\PaymentOption();
 		$newOption->setCallToActionText ($this->l('Pago con Tarjeta a través de Tropipay' ))
-				->setAction ($this->context->link->getModuleLink($this->name, 'form', array(), true))
-				->setInputs(array(
-					'urltpvd' => array(
-							'name' =>'urltpvd',
-							'type' =>'hidden',
-							'value' =>$this->urltpvd,
-					)
-				));
+				->setAction ($this->context->link->getModuleLink($this->name, 'form', array(), true));
 
 		$payment_options = [$newOption];
 
 		return $payment_options;
 	}
-	
 	
 	public function hookPaymentReturn($params) {
 		$totaltoPay = null;
