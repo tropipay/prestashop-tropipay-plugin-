@@ -295,11 +295,6 @@ class Tropipayoficial extends PaymentModule {
 		return $this->html;
 	}
 
-	public function goGoogle()
-	{
-		return "https//:google.com";
-	}
-	
 	public function createParameter($params){
 		
 		// Valor de compra
