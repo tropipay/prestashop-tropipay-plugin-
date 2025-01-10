@@ -2,12 +2,33 @@
 
 
 class TropipayoficialValidationModuleFrontController extends ModuleFrontController  {
-    public function postProcess() {
+    public function postProcess() 
+    {
+        $logActivo = Configuration::get('TROPIPAY_LOG');
+        $idLog = generateIdLog();
+        escribirLog($idLog . " -- " . "Entramos en la validación del pedido", $logActivo);
+
+        try {
+            // Parse the incoming request
+            $requestBody = file_get_contents('php://input');
+            $ppd = json_decode($requestBody, true);
+
+            if (!$ppd) {
+                escribirLog($idLog . " -- " . "Cuerpo de solicitud vacío o JSON inválido", $logActivo);
+            } else {
+                $this->processRequest($ppd, $logActivo, $idLog);
+            }
+        } catch (Exception $e) {
+            escribirLog($idLog . " -- Excepción en la validación: " . $e->getMessage(), $logActivo);
+        }
+
+        $this->respond200(); // Always respond with 200 OK
+    }
+
+    private function processRequest($ppd, $logActivo, $idLog)
+    {
         try{
-            $idLog = generateIdLog();
-            /** Log de Errores **/
-            $logActivo = Configuration::get('TROPIPAY_LOG');
-            escribirLog($idLog." -- "."Entramos en la validación del pedido",$logActivo);
+           
             $accesoDesde = "";
             if (!empty($_POST)) {
                 $accesoDesde = 'POST';
@@ -15,18 +36,11 @@ class TropipayoficialValidationModuleFrontController extends ModuleFrontControll
                 $accesoDesde = 'GET';
             }
 
-
-            $strrrr=file_get_contents('php://input');
-            $ppd=json_decode($strrrr,true);
-
             $ds_amount = abs($ppd["data"]["originalCurrencyAmount"]);
             $ds_amountorig = $ppd["data"]["originalCurrencyAmount"];
             $total     = $ds_amount;
             $ds_order = $ppd["data"]["reference"];
             $ds_bankordercode = $ppd["data"]["bankOrderCode"];
-            //$ds_amount = $ppd["data"]["originalCurrencyAmount"];
-            //$ds_merchant_usermail = $settings['Mailuser_tropipay'];
-            //$ds_merchant_userpassword = $settings['Password_tropipay'];
             $ds_merchant_usermail = Configuration::get('TROPIPAY_CLIENTID');
             $ds_merchant_userpassword = Configuration::get('TROPIPAY_CLIENTSECRET');
             $ds_reference=$ppd["data"]["reference"];
@@ -44,7 +58,6 @@ class TropipayoficialValidationModuleFrontController extends ModuleFrontControll
             escribirLog($idLog." -- "."ID trans: ".$id_trans,$logActivo);
 
             if($firma_local==$firma_remota) {
-                //$order_id = tropipay_payments_get_order_id($ds_reference);
 
                 $cart = new Cart($pedido);
                 $tropipay = new tropipayoficial();
@@ -149,16 +162,18 @@ class TropipayoficialValidationModuleFrontController extends ModuleFrontControll
                     Tools::redirect('index.php?controller=order&step=1');
                 }
             }
-
-                
-
-            
-            
         }
         catch (Exception $e){
             $idLogExc = generateIdLog();
             escribirLog($idLogExc." -- Excepcion en la validacion: ".$e->getMessage(),$logActivo);
             die("Excepcion en la validacion");
         }
+    }
+
+    private function respond200()
+    {
+        http_response_code(200);
+        echo "OK";
+        exit();
     }
 }
