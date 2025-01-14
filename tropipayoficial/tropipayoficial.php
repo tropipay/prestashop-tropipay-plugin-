@@ -4,24 +4,30 @@ if (! defined ( '_PS_VERSION_' )) {
 	exit ();
 }
 if (! function_exists ( "escribirLog" )) {
-	require_once ('apiTropipay/tropipayLibrary.php');
+	require_once ('src/TropipaySDK/tropipayLibrary.php');
 }
 if (! class_exists ( "TropipayAPI" )) {
-	require_once ('apiTropipay/apiTropipayFinal.php');
+	require_once ('src/TropipaySDK/apiTropipayFinal.php');
 }
 if (! defined ( '_CAN_LOAD_FILES_' ))
 	exit ();
 
+require_once('src/TropipaySDK/ILogger.php');
+require_once('src/Infrastructure/Logger.php');
 	
-class Tropipayoficial extends PaymentModule {
+class Tropipayoficial extends PaymentModule 
+{
 	
 	private $_html = '';
 	private $html = '';
 	private $_postErrors = array ();
+
+	private ILogger $logger; 
 	
-	
-	public function __construct() {
-		
+	public function __construct() 
+	{		
+		$this->logger = new Logger();
+		$this->logFileName = 'log.log';
 		$this->name = 'tropipayoficial';
 		$this->tab = 'payments_gateways';
 		$this->version = '2.2.0';
@@ -95,7 +101,7 @@ class Tropipayoficial extends PaymentModule {
 				|| ! Configuration::updateValue ( 'TROPIPAY_URLTPV', '0' ) 
 				|| ! Configuration::updateValue ( 'TROPIPAY_CLIENTID', $this->l ( 'Escriba el clientId de la API de Tropipay' ) ) 
 				|| ! Configuration::updateValue ( 'TROPIPAY_ERROR_PAGO', 'no' ) 
-				|| ! Configuration::updateValue ( 'TROPIPAY_LOG', 'no' ) 
+				|| ! Configuration::updateValue ( 'TROPIPAY_LOG', 'si' ) 
 				|| ! Configuration::updateValue ( 'TROPIPAY_IDIOMAS_ESTADO', 'no' ) 
 				|| ! Configuration::updateValue ( 'TROPIPAY_ESTADO_PEDIDO', '2' )
 				|| ! $this->registerHook ( 'paymentReturn' ) 
@@ -174,7 +180,7 @@ class Tropipayoficial extends PaymentModule {
 	private function _displayTropipay()
 	{
 		// lista de payments
-		$this->html .= '<img src="../modules/tropipayoficial/img/tropipay.png" style="float:left; margin-right:15px;"><b><br />'
+		$this->html .= '<img src="../modules/tropipayoficial/views/img/tropipay.png" style="float:left; margin-right:15px;"><b><br />'
 		.$this->l('Este módulo le permite aceptar pagos con tarjeta.').'</b><br />'
 		.$this->l('Si el cliente elije este modo de pago, podrá pagar de forma automática.').'<br /><br /><br />';
 	}
@@ -188,7 +194,7 @@ class Tropipayoficial extends PaymentModule {
 		$error_pago_no = ($error_pago == 'no') ? ' checked="checked" ' : '';
 	
 		// Opciones para el comportamiento del log
-		$activar_log = Tools::getValue('activar_log', $this->activar_log);
+		$activar_log = Tools::getValue('activar_log');
 		$activar_log_si = ($activar_log == 'si') ? ' checked="checked" ' : '';
 		$activar_log_no = ($activar_log == 'no') ? ' checked="checked" ' : '';
 	
@@ -321,14 +327,14 @@ class Tropipayoficial extends PaymentModule {
 		} else {
 			$sec_pedido = - 1;
 		}
-		escribirLog ( " - COOKIE: " . $valorCookie . "($orderId) - secPedido: $sec_pedido", $this->activar_log );
+		$this->logger->info( " - COOKIE: " . $valorCookie . "($orderId) - secPedido: $sec_pedido");
 		if ($sec_pedido < 9) {
 			$this->setTropipayCookie($orderId,++ $sec_pedido);
 		}
 
 		$numpedido = str_pad ( $orderId . "z" . $sec_pedido . time()%1000, 12, "0", STR_PAD_LEFT );
 
-		escribirLog(" - NÚMERO PEDIDO: Número de pedido interno: '" . $orderId . "'. Número de pedido enviado a TROPIPAY: '" . $numpedido . "'", $this->activar_log);
+		$this->logger->info(" - NÚMERO PEDIDO: Número de pedido interno: '" . $orderId . "'. Número de pedido enviado a TROPIPAY: '" . $numpedido . "'");
 
 		// Fuc
 		$codigo = $this->codigo;
@@ -458,7 +464,7 @@ class Tropipayoficial extends PaymentModule {
 				$character = json_decode($response);
 				$tokent=$character->access_token;
 
-				escribirLog(" - Llamada a la api login: '" .$ds_merchant_usermail . "'. Token: '" . $tokent . "'", $this->activar_log);
+				$this->logger->info(" - Llamada a la api login: '" .$ds_merchant_usermail . "'. Token: '" . $tokent . "'");
 			
 				$datetime = new DateTime('now');
 				//echo $datetime->format('Y-m-d');
@@ -501,10 +507,10 @@ class Tropipayoficial extends PaymentModule {
 				  "client" => $arraycliente
 				);
 			
-				escribirLog(" - Antes de la llamada a pago: '" . $moneda . "'", $this->activar_log);
+				$this->logger->info(" - Antes de la llamada a pago: '" . $moneda . "'");
 				$data_string2 = json_encode($datos);
 			
-				escribirLog(" - Antes de la llamada a pago: '" . $data_string2 . "'", $this->activar_log);
+				$this->logger->info(" - Antes de la llamada a pago: '" . $data_string2 . "'");
 			
 				$curl = curl_init();
 				curl_setopt_array($curl, array(
@@ -528,15 +534,15 @@ class Tropipayoficial extends PaymentModule {
 			
 				if ($err) {
 				  //echo "cURL Error #:" . $err;
-				  escribirLog(" - Error a la llamada a la api paymentcards: '" .$err . "'", $this->activar_log);
+				  $this->logger->info(" - Error a la llamada a la api paymentcards: '" .$err . "'");
 				} else {
 				  //echo $response;
 				  $character = json_decode($response);
 				  $shorturl=$character->shortUrl;
 
-				  escribirLog(" - Respuesta paymentcards: '" .$response . "'", $this->activar_log);
+				  $this->logger->info(" - Respuesta paymentcards: '" .$response . "'");
 			
-				  escribirLog(" - Short url: '" .$shorturl . "'", $this->activar_log);
+				  $this->logger->info(" - Short url: '" .$shorturl . "'");
 			
 				  //$form['#action'] = $shorturl;
 				  //dsm($form);
@@ -564,7 +570,7 @@ class Tropipayoficial extends PaymentModule {
 	
 		return array(
 				'cta_text' => "Pagar con tarjeta",
-				'logo' => _MODULE_DIR_."tropipayoficial/img/tarjetas.png",
+				'logo' => _MODULE_DIR_."tropipayoficial/views/img/tarjetas.png",
 				'form' => $this->display(__FILE__, "views/templates/hook/payment_eu.tpl"),
 		);
 	}

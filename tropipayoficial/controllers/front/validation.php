@@ -1,25 +1,32 @@
 <?php
 
+require_once(dirname(__DIR__).'/../src/Services/CompletePayment.php');
 
-class TropipayoficialValidationModuleFrontController extends ModuleFrontController  {
+class TropipayoficialValidationModuleFrontController extends ModuleFrontController  { 
+    
+    private CompletePayment $completePaymentService;
+
+    public function __construct() {
+        parent::__construct();
+
+        $this->completePaymentService = new CompletePayment();
+    }
+
     public function postProcess() 
     {
-        $logActivo = Configuration::get('TROPIPAY_LOG');
-        $idLog = generateIdLog();
-        escribirLog($idLog . " -- " . "Entramos en la validación del pedido", $logActivo);
+
+        $this->module->logger->info("Entramos en la validación del pedido");
 
         try {
             // Parse the incoming request
-            $requestBody = file_get_contents('php://input');
-            $ppd = json_decode($requestBody, true);
+            // $requestBody = file_get_contents('php://input');
+            // $ppd = json_decode($requestBody, true);
 
-            if (!$ppd) {
-                escribirLog($idLog . " -- " . "Cuerpo de solicitud vacío o JSON inválido", $logActivo);
-            } else {
-                $this->processRequest($ppd, $logActivo, $idLog);
-            }
+            $this->completePaymentService->parseRequest(file_get_contents('php://input'));
+            //$this->processRequest($ppd, $logActivo, $idLog);
+
         } catch (Exception $e) {
-            escribirLog($idLog . " -- Excepción en la validación: " . $e->getMessage(), $logActivo);
+            $this->module->logger->info(" -- Excepción en la validación: " . $e->getMessage());
         }
 
         $this->respond200(); // Always respond with 200 OK
@@ -94,7 +101,7 @@ class TropipayoficialValidationModuleFrontController extends ModuleFrontControll
                     $carrito_valido = false;
                 }
                 if (!$carrito_valido){
-                    escribirLog($idLog . " ++ " . serialize($cart), $logActivo);
+                    $this->module->logger->info(" ++ " . serialize($cart), $logActivo);
                     $mensajeError += "REVISAR EN EL PORTAL DE ADMINISTRACION LA OPERACION '" . $pedido . "' YA QUE ES POSIBLE QUE HAYA SIDO CORRECTA";
                     $tropipay->validateOrder($pedido, _PS_OS_ERROR_, $total/100, $tropipay->displayName, $mensajeError);
                     Tools::redirect('index.php?controller=order&step=1');
@@ -103,7 +110,7 @@ class TropipayoficialValidationModuleFrontController extends ModuleFrontControll
                 $customer = $cliente ? new Customer((int)$cart->id_customer) : new Guest((int)$cart->id_guest);
                 
                 if (!$cliente) {
-                    escribirLog($idLog . " ++ " . serialize($customer), $logActivo);
+                    $this->module->logger->info(" ++ " . serialize($customer), $logActivo);
                 }
                     /** Donet **/
                     $address = new Address((int)$cart->id_address_invoice);
