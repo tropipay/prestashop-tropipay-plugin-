@@ -11,18 +11,11 @@ class Payment
 
     public function __construct(array $data) 
     {
-        $this->status = $data["status"];
-        $data = $data;
         $this->amount = abs($data["originalCurrencyAmount"]);
         $this->reference = $data["reference"];
         $this->bankOrderCode = $data["bankOrderCode"];
         $this->currency = $data["paymentcard"]["currency"];
         $this->signature = $data["signaturev2"];
-    }
-
-    public function getStatus(): string
-    {
-        return $this->status;
     }
 
     public function getBankOrder()

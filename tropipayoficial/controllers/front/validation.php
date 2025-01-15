@@ -1,25 +1,31 @@
 <?php
 
-require_once(dirname(__DIR__).'/../src/Services/CompletePayment.php');
+require_once(dirname(__DIR__).'/../src/Services/ProcessPayment.php');
 
 class TropipayoficialValidationModuleFrontController extends ModuleFrontController  { 
     
-    private CompletePayment $completePaymentService;
+    private ProcessPayment $completePaymentService;
 
     public function __construct() {
         parent::__construct();
 
-        $this->completePaymentService = new CompletePayment();
+        $this->completePaymentService = new ProcessPayment();
     }
 
     public function postProcess() 
     {
+        if (!$this->module->active) {
+            $this->module->logger->error("Error. Módulo desactivado.");
+            return $this->respond200();
+        }
 
         $this->module->logger->info("Entramos en la validación del pedido");
 
         try {
-            $this->completePaymentService->parseRequest(file_get_contents('php://input'));
-            //$this->processRequest($ppd, $logActivo, $idLog);
+            $payment = $this->completePaymentService->parseRequest(file_get_contents('php://input'));
+            $this->completePaymentService->validatePayment($payment);
+
+            // $this->processRequest($ppd, $logActivo, $idLog);
 
         } catch (Exception $e) {
             $this->module->logger->error("Excepción en la validación: " . $e->getMessage());
