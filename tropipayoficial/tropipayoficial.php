@@ -22,7 +22,7 @@ class Tropipayoficial extends PaymentModule
 	private $html = '';
 	private $_postErrors = array ();
 
-	private ILogger $logger; 
+	public ILogger $logger; 
 	
 	public function __construct() 
 	{		

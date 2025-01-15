@@ -18,15 +18,11 @@ class TropipayoficialValidationModuleFrontController extends ModuleFrontControll
         $this->module->logger->info("Entramos en la validación del pedido");
 
         try {
-            // Parse the incoming request
-            // $requestBody = file_get_contents('php://input');
-            // $ppd = json_decode($requestBody, true);
-
             $this->completePaymentService->parseRequest(file_get_contents('php://input'));
             //$this->processRequest($ppd, $logActivo, $idLog);
 
         } catch (Exception $e) {
-            $this->module->logger->info(" -- Excepción en la validación: " . $e->getMessage());
+            $this->module->logger->error("Excepción en la validación: " . $e->getMessage());
         }
 
         $this->respond200(); // Always respond with 200 OK

@@ -3,23 +3,25 @@
 require_once(dirname(__DIR__).'/TropipaySDK/ILogger.php');
 
 class Logger implements Ilogger
-{
-    private string $id;
-
-    public function __construct() {
-        $this->id = IdGenerator::generate();
-    }
-    
+{    
     private function log(string $level, string $message): void
     {
-        $logfilename = dirname(__DIR__).'/../Logs/log.log';
-		file_put_contents("[" .date('M d Y G:i:s') ."] " .$level.": ". $this->id . ' -- ' . $texto . "\r\n", is_file($logfilename) ? FILE_APPEND : 0);
+        try {
+            $id = IdGenerator::generate();
+            $path = dirname(__DIR__).'/Logs/log';
+            $line = "[" .date('M d Y G:i:s') ."] " . $level .": ". $id . ' -- ' . $message . "\r\n";
+            file_put_contents($path, $line, FILE_APPEND);
+        } catch (\Exception $th) {
+            echo $th->getMessage();
+        }
+        
     }
 
     public function info(string $message): void
     {
         $this->log("INFO", $message);
     }
+    
     public function error(string $message): void
     {
         $this->log("ERROR", $message);
