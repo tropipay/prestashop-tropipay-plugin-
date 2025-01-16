@@ -20,13 +20,45 @@ class ProcessPayment {
         return new Payment($data['data']);
     }
 
-    public function validatePayment(Payment $payment): void 
+    public function validatePayment(Payment $payment, Cart $cart): void 
     {
+        $valid = true;
+        $errors = array();
         $localSignature = $this->generateSignature($payment);
-        var_dump($payment->getSignature(), $localSignature);
-        if ($payment->getSignature() !== $localSignature) {
-            throw new PaymentValidationException("La firma no coincide.");
+        if ($payment->getSignature() !== $localSignature)
+        {
+            $valid = false;
+            $errors[] = "La firma no coincide.";
         }
+
+        if (!$payment->getBankOrder())
+        {
+            $valid = false;
+            $errors[] = "Ds_AuthorisationCode inválido. ($payment->getBankOrder())";
+        }
+
+        // $cartCurrency = new Currency($cart->id_currency);
+        
+        // if ($payment->getCurrency()->iso_code !== $cartCurrency->iso_code)
+        // {
+        //     $valid = false;
+        //     $errors[] = "Las monedas no coinciden " . var_dump($payment->getCurrency()->iso_code, $cartCurrency->iso_code);
+        // }
+
+         
+        if (!$valid)
+        {
+            $message = "Errores validando el pago: ";
+            $first = true;
+            foreach ($errors as $key => $error) 
+            {
+
+               $message .= ($first ? "" : "| " ). $error;
+               $first = false;
+            }
+            throw new PaymentValidationException($message);
+        }
+
     }
 
     private function generateSignature(Payment $payment): string {

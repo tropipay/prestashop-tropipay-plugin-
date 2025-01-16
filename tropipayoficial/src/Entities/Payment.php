@@ -38,6 +38,11 @@ class Payment
         return $this->reference;
     }
 
+    public function getOrder(): string 
+    {
+        return intval(substr($this->reference, 0, 11));
+    }
+
     public function getCurrency(): Currency
     {
         return new Currency((int)$this->currency);
