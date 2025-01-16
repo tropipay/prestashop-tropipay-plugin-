@@ -1,1 +1,2 @@
-tropipayoficial/src/Logs/*
+tropipayoficial/src/Logs/**
+!tropipayoficial/src/Logs/index.php
