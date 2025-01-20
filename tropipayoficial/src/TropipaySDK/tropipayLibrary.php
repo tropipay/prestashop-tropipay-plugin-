@@ -20,7 +20,7 @@ function generateIdLog() {
 function escribirLog($texto,$activo) {
 	if($activo=="si"){
 		// Log
-		$logfilename = dirname(__FILE__).'/../logs/tropipayLog.log';
+		$logfilename = dirname(__DIR__).'/Logs/log.log';
 		file_put_contents($logfilename, date('M d Y G:i:s') . ' -- ' . $texto . "\r\n", is_file($logfilename)?FILE_APPEND:0);
 	}
 }
